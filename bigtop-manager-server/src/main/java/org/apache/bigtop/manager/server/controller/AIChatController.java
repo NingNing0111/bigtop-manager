@@ -18,7 +18,6 @@
  */
 package org.apache.bigtop.manager.server.controller;
 
-import dev.langchain4j.model.openai.OpenAiChatModelName;
 import org.apache.bigtop.manager.ai.assistant.provider.AIAssistantConfig;
 import org.apache.bigtop.manager.ai.core.enums.PlatformType;
 import org.apache.bigtop.manager.ai.core.factory.AIAssistant;
@@ -46,12 +45,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import dev.langchain4j.model.openai.OpenAiChatModelName;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-
-import jakarta.annotation.Resource;
 import reactor.core.publisher.Flux;
 
+import jakarta.annotation.Resource;
 import java.util.List;
 
 @Tag(name = "AI Chat Controller")
@@ -136,7 +135,7 @@ public class AIChatController {
     private AIAssistantFactory aiAssistantFactory;
 
     @PostMapping("platforms/talk_test")
-    public Flux<String> talkTest(@RequestParam String message){
+    public Flux<String> talkTest(@RequestParam String message) {
         AIAssistantConfig config = AIAssistantConfig.builder()
                 .set("baseUrl", "https://api.mnzdna.xyz/v1")
                 .set("apiKey", "sk-W9kYeE3JfWM86sr66e29FfC7B3194406B96fAd460353Dc7a")

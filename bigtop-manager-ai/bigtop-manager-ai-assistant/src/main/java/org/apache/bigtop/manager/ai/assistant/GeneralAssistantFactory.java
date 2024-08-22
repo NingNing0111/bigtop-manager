@@ -26,12 +26,12 @@ import org.apache.bigtop.manager.ai.core.factory.ToolBox;
 import org.apache.bigtop.manager.ai.core.provider.AIAssistantConfigProvider;
 import org.apache.bigtop.manager.ai.core.provider.SystemPromptProvider;
 import org.apache.bigtop.manager.ai.openai.OpenAIAssistant;
+import org.apache.bigtop.manager.ai.zhipu.ZhiPuAIAssistant;
 
 import dev.langchain4j.data.message.SystemMessage;
+import dev.langchain4j.internal.ValidationUtils;
 import dev.langchain4j.store.memory.chat.ChatMemoryStore;
 import dev.langchain4j.store.memory.chat.InMemoryChatMemoryStore;
-
-import java.util.Objects;
 
 public class GeneralAssistantFactory extends AbstractAIAssistantFactory {
 
@@ -60,16 +60,22 @@ public class GeneralAssistantFactory extends AbstractAIAssistantFactory {
 
     @Override
     public AIAssistant create(PlatformType platformType, AIAssistantConfigProvider assistantConfig, Object id) {
-        if (Objects.requireNonNull(platformType) == PlatformType.OPENAI) {
-            AIAssistant aiAssistant = OpenAIAssistant.builder()
+        AIAssistant aiAssistant = null;
+        switch (platformType) {
+            case OPENAI -> aiAssistant = OpenAIAssistant.builder()
                     .id(id)
                     .memoryStore(chatMemoryStore)
                     .withConfigProvider(assistantConfig)
                     .build();
-            aiAssistant.setSystemPrompt(systemPromptProvider.getSystemPrompt());
-            return aiAssistant;
+            case ZHIPU -> aiAssistant = ZhiPuAIAssistant.builder()
+                    .id(id)
+                    .memoryStore(chatMemoryStore)
+                    .withConfigProvider(assistantConfig)
+                    .build();
         }
-        return null;
+        aiAssistant = ValidationUtils.ensureNotNull(aiAssistant, "AIAssistant");
+        aiAssistant.setSystemPrompt(systemPromptProvider.getSystemPrompt());
+        return aiAssistant;
     }
 
     @Override

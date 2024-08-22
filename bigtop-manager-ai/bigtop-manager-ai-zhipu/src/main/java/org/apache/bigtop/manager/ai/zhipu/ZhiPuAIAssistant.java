@@ -1,54 +1,112 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *    https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 package org.apache.bigtop.manager.ai.zhipu;
 
-import dev.langchain4j.data.message.ChatMessage;
-import dev.langchain4j.data.message.SystemMessage;
-import dev.langchain4j.memory.ChatMemory;
+import org.apache.bigtop.manager.ai.core.AbstractAIAssistant;
 import org.apache.bigtop.manager.ai.core.factory.AIAssistant;
-import reactor.core.publisher.Flux;
+import org.apache.bigtop.manager.ai.core.provider.AIAssistantConfigProvider;
 
-/**
- * @Project: org.apache.bigtop.manager.ai.zhipu
- * @Author: pgthinker
- * @GitHub: https://github.com/ningning0111
- * @Date: 2024/8/22 23:55
- * @Description:
- */
-public class ZhiPuAIAssistant implements AIAssistant {
-    private static final String PLATFORM_NAME = "openai";
-    private static final String BASE_URL = "https://api.openai.com/v1";
-    private static final String MODEL_NAME = "chatglm3-6b";
-    @Override
-    public Object getId() {
-        return null;
-    }
+import org.springframework.util.NumberUtils;
 
-    @Override
-    public Flux<String> streamAsk(ChatMessage userMessage) {
-        return null;
-    }
+import dev.langchain4j.internal.ValidationUtils;
+import dev.langchain4j.memory.ChatMemory;
+import dev.langchain4j.memory.chat.MessageWindowChatMemory;
+import dev.langchain4j.model.chat.ChatLanguageModel;
+import dev.langchain4j.model.chat.StreamingChatLanguageModel;
+import dev.langchain4j.model.zhipu.ZhipuAiChatModel;
+import dev.langchain4j.model.zhipu.ZhipuAiStreamingChatModel;
+import dev.langchain4j.model.zhipu.chat.ChatCompletionModel;
+import dev.langchain4j.store.memory.chat.ChatMemoryStore;
 
-    @Override
-    public String ask(ChatMessage userMessage) {
-        return null;
-    }
+import java.util.HashMap;
+import java.util.Map;
 
-    @Override
-    public ChatMemory getMemory() {
-        return null;
+public class ZhiPuAIAssistant extends AbstractAIAssistant {
+    private static final String PLATFORM_NAME = "zhipu";
+    private static final String BASE_URL = "https://open.bigmodel.cn/v1";
+    private static final String MODEL_NAME = ChatCompletionModel.GLM_3_TURBO.toString();
+
+    private ZhiPuAIAssistant(
+            ChatLanguageModel chatLanguageModel,
+            StreamingChatLanguageModel streamingChatLanguageModel,
+            ChatMemory chatMemory) {
+        super(chatLanguageModel, streamingChatLanguageModel, chatMemory);
     }
 
     @Override
     public String getPlatform() {
-        return null;
+        return PLATFORM_NAME;
     }
 
-    @Override
-    public void setSystemPrompt(SystemMessage systemPrompt) {
-
+    public static Builder builder() {
+        return new Builder();
     }
 
-    @Override
-    public void resetMemory() {
+    public static class Builder {
+        private Object id;
 
+        private Map<String, String> configs = new HashMap<>();
+        private ChatMemoryStore chatMemoryStore;
+
+        public Builder() {
+            configs.put("baseUrl", BASE_URL);
+            configs.put("modelName", MODEL_NAME);
+        }
+
+        public Builder withConfigProvider(AIAssistantConfigProvider configProvider) {
+            this.configs = configProvider.configs();
+            return this;
+        }
+
+        public Builder id(Object id) {
+            this.id = id;
+            return this;
+        }
+
+        public Builder memoryStore(ChatMemoryStore chatMemoryStore) {
+            this.chatMemoryStore = chatMemoryStore;
+            return this;
+        }
+
+        public AIAssistant build() {
+            ValidationUtils.ensureNotNull(id, "id");
+            String baseUrl = configs.get("baseUrl");
+            String modelName = configs.get("modelName");
+            String apiKey = ValidationUtils.ensureNotNull(configs.get("apiKey"), "apiKey");
+            Integer memoryLen = ValidationUtils.ensureNotNull(
+                    NumberUtils.parseNumber(configs.get("memoryLen"), Integer.class), "memoryLen not a number.");
+            ChatLanguageModel zhipuAiChatModel = ZhipuAiChatModel.builder()
+                    .apiKey(apiKey)
+                    .baseUrl(baseUrl)
+                    .model(modelName)
+                    .build();
+            StreamingChatLanguageModel zhipuAiStreamingChatModel = ZhipuAiStreamingChatModel.builder()
+                    .apiKey(apiKey)
+                    .baseUrl(baseUrl)
+                    .model(modelName)
+                    .build();
+            MessageWindowChatMemory chatMemory = MessageWindowChatMemory.builder()
+                    .id(id)
+                    .chatMemoryStore(chatMemoryStore)
+                    .maxMessages(memoryLen)
+                    .build();
+            return new ZhiPuAIAssistant(zhipuAiChatModel, zhipuAiStreamingChatModel, chatMemory);
+        }
     }
 }

@@ -24,6 +24,7 @@ import org.apache.bigtop.manager.ai.core.provider.AIAssistantConfigProvider;
 
 import org.springframework.util.NumberUtils;
 
+import dev.ai4j.openai4j.chat.ChatCompletionModel;
 import dev.langchain4j.internal.ValidationUtils;
 import dev.langchain4j.memory.ChatMemory;
 import dev.langchain4j.memory.chat.MessageWindowChatMemory;
@@ -40,7 +41,7 @@ public class OpenAIAssistant extends AbstractAIAssistant {
 
     private static final String PLATFORM_NAME = "openai";
     private static final String BASE_URL = "https://api.openai.com/v1";
-    private static final String MODEL_NAME = "gpt-3.5-turbo";
+    private static final String MODEL_NAME = ChatCompletionModel.GPT_3_5_TURBO.toString();
 
     private OpenAIAssistant(
             ChatLanguageModel chatLanguageModel,

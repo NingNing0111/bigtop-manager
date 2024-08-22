@@ -33,11 +33,15 @@
     <dependencies>
         <dependency>
             <groupId>org.apache.bigtop</groupId>
+            <artifactId>bigtop-manager-ai-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.bigtop</groupId>
             <artifactId>bigtop-manager-ai-openai</artifactId>
         </dependency>
         <dependency>
             <groupId>org.apache.bigtop</groupId>
-            <artifactId>bigtop-manager-ai-core</artifactId>
+            <artifactId>bigtop-manager-ai-zhipu</artifactId>
         </dependency>
     </dependencies>
 
