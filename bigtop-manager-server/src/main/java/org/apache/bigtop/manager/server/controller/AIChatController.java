@@ -18,10 +18,6 @@
  */
 package org.apache.bigtop.manager.server.controller;
 
-import org.apache.bigtop.manager.ai.assistant.provider.AIAssistantConfig;
-import org.apache.bigtop.manager.ai.core.enums.PlatformType;
-import org.apache.bigtop.manager.ai.core.factory.AIAssistant;
-import org.apache.bigtop.manager.ai.core.factory.AIAssistantFactory;
 import org.apache.bigtop.manager.server.enums.ResponseStatus;
 import org.apache.bigtop.manager.server.model.converter.PlatformConverter;
 import org.apache.bigtop.manager.server.model.dto.PlatformDTO;
@@ -45,10 +41,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import dev.langchain4j.model.openai.OpenAiChatModelName;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import reactor.core.publisher.Flux;
 
 import jakarta.annotation.Resource;
 import java.util.List;
@@ -129,19 +123,5 @@ public class AIChatController {
     @GetMapping("platforms/{platformId}/threads/{threadId}/history")
     public ResponseEntity<List<ChatMessageVO>> history(@PathVariable Long platformId, @PathVariable Long threadId) {
         return ResponseEntity.success(chatService.history(platformId, threadId));
-    }
-
-    @Resource
-    private AIAssistantFactory aiAssistantFactory;
-
-    @PostMapping("platforms/talk_test")
-    public Flux<String> talkTest(@RequestParam String message) {
-        AIAssistantConfig config = AIAssistantConfig.builder()
-                .set("baseUrl", "https://api.mnzdna.xyz/v1")
-                .set("apiKey", "sk-W9kYeE3JfWM86sr66e29FfC7B3194406B96fAd460353Dc7a")
-                .set("modelName", OpenAiChatModelName.GPT_3_5_TURBO.toString())
-                .build();
-        AIAssistant aiAssistant = aiAssistantFactory.create(PlatformType.OPENAI, config);
-        return aiAssistant.streamAsk(message);
     }
 }
